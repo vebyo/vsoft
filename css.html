@@ -67,3 +67,130 @@ ul.dropdown-content.select-dropdown li span {
 	margin-bottom:10px;
 	}
 </style>
+
+<script>
+var chip;
+ document.addEventListener('DOMContentLoaded', function() {
+  
+  document.getElementById("btn").addEventListener("click",btnClicked);
+  document.getElementById("KodeNIS").addEventListener("input",grabName);
+  
+  
+  var chipEl = document.getElementById('chip');
+  chip = M.Chips.init(chipEl, {placeholder: 'Ketik lalu Enter', secondaryPlaceholder: '+Label'});
+  
+  var dropDown = document.querySelectorAll('select');
+  M.FormSelect.init(dropDown);    
+  google.script.run.withSuccessHandler(populateDates).getCalendarBusyDays();
+  google.script.run.withSuccessHandler(populateWords).getWords();
+
+  });
+  
+ function populateDates(disabledDays){
+    var datePicker = document.getElementById('prefDate');
+    M.Datepicker.init(datePicker,{
+              disableDayFn: function(day){
+              return disabledDays.indexOf(day.valueOf()) > -1;
+	}
+//day.valueOf() < new Date().valueOf()
+  });
+  }
+  
+//Fungsi Autocomplete get text dari Sheet
+  function populateWords(words){
+    var debetrekauto = document.getElementById('debetrek');
+    var instances = M.Autocomplete.init(debetrekauto, { data : words});
+    var kreditrekauto = document.getElementById('kreditrek');
+    var instances2 = M.Autocomplete.init(kreditrekauto, { data : words});
+  
+  }
+  
+    
+    
+function btnClicked(){
+
+ var toValidate = {
+    fn: "Nama depan blum",
+    ln: "Nama belakang blum",
+    KodeNIS: "NIS Belum"
+
+ };
+
+ var idKeys = Object.keys(toValidate);
+ 
+ var allValid = true;
+ idKeys.forEach(function(id){
+   var isValid = checkIfValid(id, toValidate[id]);
+   if(!isValid){
+   allValid = false;
+  }
+  });
+
+ if(allValid){
+ addRecord() ;
+ }
+ }
+
+function checkIfValid(elID,message){
+  var isValid = document.getElementById(elID).checkValidity();
+  
+  if(!isValid){
+       M.toast({html: message });
+       return false;
+     }
+     return true;
+}
+
+function addRecord(){
+ var ZeroNIS = document.getElementById("KodeNIS").value;
+ var userInfo = {};
+ 
+  userInfo.firstName = document.getElementById("fn").value;
+  userInfo.lastName = document.getElementById("ln").value;
+  userInfo.application = document.getElementById("app").value;
+  userInfo.NISMurid = document.getElementById("KodeNIS").value = "'"+ ZeroNIS;
+  userInfo.NamaMurid = document.getElementById("NISName").value;
+  userInfo.tanggal = document.getElementById("prefDate").value;
+  userInfo.debetrek = document.getElementById("debetrek").value;
+  userInfo.kreditrek = document.getElementById("kreditrek").value;
+  var chipsData = chip.chipsData;
+  userInfo.chip = chipsData.map(function(c){ return c.tag;});
+  
+  
+          google.script.run.userClicked(userInfo);
+          document.getElementById("fn").value = "";
+          document.getElementById("ln").value = "";
+          document.getElementById("KodeNIS").value = "";
+          document.getElementById("NISName").value = "";
+          document.getElementById("prefDate").value = "";
+          document.getElementById("debetrek").value = "";
+          document.getElementById("kreditrek").value = "";
+          chip.data = [];
+          var chipEl = document.getElementById('chip');
+          chip = M.Chips.init(chipEl, {placeholder: 'Ketik lalu Enter', secondaryPlaceholder: '+Label'});
+  
+          M.updateTextFields();
+
+        var AppOpt = document.getElementById("app");
+
+        AppOpt.selectedIndex = 0;
+        M.FormSelect.init(AppOpt);
+        
+        var msgbox = document.getElementById('msgbox');
+        M.Modal.init(msgbox).open();
+          }
+          
+          
+function grabName(){
+    var NIS = document.getElementById("KodeNIS").value;
+    if(NIS.length === 4){
+    google.script.run.withSuccessHandler(UpdateNISName).getName(NIS);
+    }
+    }
+    
+function UpdateNISName (Nama){
+     document.getElementById("NISName").value = Nama;
+      M.updateTextFields();
+      }
+
+</script>
